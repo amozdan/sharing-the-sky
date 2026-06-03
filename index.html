@@ -259,7 +259,7 @@ a { color: inherit; }
         </span>
         <i class="ti ti-arrow-right" aria-hidden="true"></i>
       </a>
-      <a class="link-row" href="#" target="_blank" rel="noopener" id="nb-link">
+      <a class="link-row" href="https://github.com/amozdan/sharing-the-sky/blob/main/chime_frb_gcn_alerts.ipynb" target="_blank" rel="noopener" id="nb-link">
         <span class="link-row-left">
           <i class="ti ti-code" aria-hidden="true"></i>
           <span id="l-nb-en">Sample code — receive GCN alerts</span>
@@ -304,28 +304,14 @@ a { color: inherit; }
 </div>
 
 <script>
-// ── GITHUB-BACKED POLL ────────────────────────────────────────────────
-// Votes are stored in votes.json in the repo.
-// Writes go through a GitHub Actions workflow — the write token lives
-// in GitHub Secrets (VOTE_TOKEN), never in this file.
-//
-// This file only needs a fine-grained token with `actions: write` scope
-// to trigger the workflow — it cannot read or modify repo contents.
-//
-// To reset before the conference:
-//   Edit votes.json on GitHub and set {"speed":10,"reliability":10}
-//
-// To update the notebook link:
-//   Replace href="#" on the element with id="nb-link"
 
-// ── Replace with your Cloudflare Worker URL after deploying worker.js
+
 const WORKER_URL = 'https://chime-poll.damouyal-mcgill.workers.dev';
 const VOTES_URL  = `https://raw.githubusercontent.com/amozdan/sharing-the-sky/main/votes.json`;
 
 let votes = { speed: 10, reliability: 10 };
 let voted = false;
 
-// ── Load current vote counts on page load (public raw URL — no token needed)
 async function loadVotes() {
   try {
     const res = await fetch(VOTES_URL + '?t=' + Date.now()); // cache-bust
@@ -337,7 +323,6 @@ async function loadVotes() {
   }
 }
 
-// ── Send vote to Cloudflare Worker (no token needed from browser)
 async function dispatchVote(choice) {
   if (WORKER_URL.includes('YOUR_WORKER')) return;
   try {
@@ -347,7 +332,6 @@ async function dispatchVote(choice) {
       body: JSON.stringify({ choice }),
     });
   } catch (e) {
-    // dispatch failed silently — vote shown to user regardless
   }
 }
 
@@ -369,7 +353,6 @@ async function vote(choice) {
   if (voted) return;
   voted = true;
 
-  // Update UI immediately with optimistic count
   votes[choice]++;
   renderResults();
 
@@ -378,11 +361,9 @@ async function vote(choice) {
   document.getElementById(chosen).classList.add('selected');
   document.getElementById(other).classList.add('dimmed');
 
-  // Fire-and-forget: trigger the workflow in the background
   dispatchVote(choice);
 }
 
-// Load real counts when page opens
 loadVotes();
 
 const enIds = ['q-en','sa-en','sb-en','ra-en','rb-en','rl-speed-en','rl-rel-en','ans-en','gcn-label-en','voe-label-en','l-gcn-en','l-nb-en','l-voe-en','l-voe2-en','l-tns-en'];
