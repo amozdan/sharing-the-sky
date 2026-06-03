@@ -1,0 +1,53 @@
+name: Record Poll Vote
+
+on:
+  workflow_dispatch:
+    inputs:
+      choice:
+        description: 'Vote choice: speed or reliability'
+        required: true
+        type: choice
+        options:
+          - speed
+          - reliability
+
+jobs:
+  record-vote:
+    runs-on: ubuntu-latest
+    # Prevent concurrent runs from causing race conditions
+    concurrency:
+      group: vote-write
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.VOTE_TOKEN }}
+
+      - name: Update vote count
+        run: |
+          CHOICE="${{ github.event.inputs.choice }}"
+
+          # Read current counts
+          SPEED=$(jq '.speed' votes.json)
+          RELIABILITY=$(jq '.reliability' votes.json)
+
+          # Increment the chosen option
+          if [ "$CHOICE" = "speed" ]; then
+            SPEED=$((SPEED + 1))
+          else
+            RELIABILITY=$((RELIABILITY + 1))
+          fi
+
+          # Write back
+          echo "{\"speed\":$SPEED,\"reliability\":$RELIABILITY}" > votes.json
+          echo "Updated: speed=$SPEED reliability=$RELIABILITY"
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add votes.json
+          git commit -m "poll vote: ${{ github.event.inputs.choice }}"
+          git push
